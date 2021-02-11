@@ -1,7 +1,9 @@
 package me.mikolaj.trading.command;
 
 import me.mikolaj.trading.PlayerCache;
+import me.mikolaj.trading.menu.BazaarDeleteMenu;
 import me.mikolaj.trading.utils.BazaarUtil;
+import me.mikolaj.trading.utils.Constans;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -25,20 +27,39 @@ public class BazaarCommand extends SimpleCommand {
 		final PlayerCache cache = PlayerCache.getCache(player);
 
 		if("dodaj".equals(action)) {
-			if(args.length == 1)
-				returnTell("&cUzyj komendy poprawnie - /{label} dodaj <ilosc_zlota>");
-			final int amount_of_gold = Integer.parseInt(args[1]);
-			final ItemStack item = player.getInventory().getItemInMainHand();
+			if (args.length == 1 || args.length == 2)
+				returnTell("&cUzyj komendy poprawnie - /bazar dodaj <cenaSprzedazy> <cenaKupna>");
 
-			//dodac dokladnie ten item co ma gracz
-			if(!item.toString().contains("AIR x 0")) {//czy na pewno to dziala??
-
-				cache.addEverything(item, item.getItemMeta(), amount_of_gold);
-				//player.getInventory().remove(player.getItemInHand());
-				Messenger.success(player, "Udalo Ci sie dodac " + item.toString() + " za " + amount_of_gold + " zlota");
+			//TODO dodac to do stalych pozniej
+			if (cache.getCounter() == Constans.MAX_ITEMS_IN_BAZAAR) {
+				returnTell("&cDodales maksymalna ilosc przedmiotow do bazaru!");
 			}
-			else {
-				Messenger.error(player, "Musisz miec w rece jakis item, ktory chcesz dodac!");
+
+			if (cache.hasBazaar()) {
+				returnTell("&cZamknij bazar, zeby moc dodawac itemy!");
+			}
+
+			try {
+				final int sellAmount = Integer.parseInt(args[1]);
+				final int buyAmount = Integer.parseInt(args[2]);
+				if (sellAmount == 0 && buyAmount == 0) {
+					Messenger.error(player, "Wprowadz chociaz jedna niezerowa wartosc!");
+					return;
+				}
+				final ItemStack item = player.getInventory().getItemInMainHand();
+
+				//dodac dokladnie ten item co ma gracz
+				if (!item.toString().contains("AIR x 0")) {//czy na pewno to dziala??
+
+					cache.addEverything(item, item.getItemMeta(), sellAmount, buyAmount);
+					//player.getInventory().remove(player.getItemInHand());
+					//TODO poprawic wiadomosc zeby bylo o sprzedazy i kupnie
+					Messenger.success(player, "Dodales " + item.toString() + ". Sprzedajesz go za " + sellAmount + " zlota, a kupujesz za " + buyAmount);
+				} else {
+					Messenger.error(player, "Musisz miec w rece jakis item, ktory chcesz dodac!");
+				}
+			} catch (final NumberFormatException ex) {
+				Messenger.error(player, "Wprowadz odpowiednie wartosci! Poprawne uzycie - /bazar dodaj <cenaSprzedazy> <cenaKupna>");
 			}
 		}
 		else if("otworz".equals(action)) {
@@ -77,33 +98,32 @@ public class BazaarCommand extends SimpleCommand {
 			cache.setBazaarLoc(null);
 
 			Messenger.announce(player, "Zamknales bazar!");
-		}
 
-		else if("nazwa".equals(action)) {
+		} else if ("nazwa".equals(action)) {
 			//TODO trzeba dopracowac - zeby nad graczem sie wyswietlalo wszystko ;)
 			player.setCustomName("OTWARTE XD");
 			player.setCustomNameVisible(true);
 			Messenger.success(player, "Ustawiles nazwe");
-		}
 
-		else if("lista".equals(action)) {
-			if(cache.getCounter() == 0)
+		} else if ("lista".equals(action)) {
+			if (cache.getCounter() == 0)
 				returnTell("&cTwoj bazar jest pusty!");
 
 			Messenger.announce(player, "Lista: ");
-			for(int i = 0; i < cache.getCounter(); i++)
-				Common.tell(player, BazaarUtil.getItemAndAmountFormated(cache.getContent()[i], cache.getAmount()[i]));
-		}
-		else if("usun".equals(action)) {
-			//TODO zaimplementowac usuwanie itemow
-			//moze byc problematyczne, bo trzeba by przesuwac wszystko o jedno miejsce w tablicy, ale to do pomyslenia pozniej
+			for (int i = 0; i < cache.getCounter(); i++)
+				Common.tell(player, BazaarUtil.getItemAndAmountFormated(cache.getContent()[i], cache.getSellAmount()[i], cache.getBuyAmount()[i]));
+
+		} else if ("usunitem".equals(action)) {
+			if (cache.hasBazaar())
+				returnTell("&cNie mozesz usuwac itemow z otwartego bazaru!");
+			new BazaarDeleteMenu(player).displayTo(player);
 		}
 	}
 
 	@Override
 	protected List<String> tabComplete() {
 		if(args.length == 1) {
-			return completeLastWord("dodaj", "otworz", "zamknij", "lista");
+			return completeLastWord("dodaj", "otworz", "zamknij", "lista", "usunitem");
 		}
 		return null;
 	}

@@ -13,6 +13,7 @@ public class Settings extends SimpleSettings {
 		public static Location PRIMARY;
 		public static Location SECONDARY;
 		public static Boolean ENABLED;
+		public static Integer MAX_ITEMS_IN_BAZAAR;
 
 		private static void init() {
 			pathPrefix("Bazaars");
@@ -20,6 +21,7 @@ public class Settings extends SimpleSettings {
 			ENABLED = getBoolean("Enabled");
 			PRIMARY = get("Primary", Location.class);
 			SECONDARY = get("Secondary", Location.class);
+			MAX_ITEMS_IN_BAZAAR = getInteger("Max_Items_In_Bazaar");
 		}
 	}
 

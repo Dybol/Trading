@@ -1,7 +1,7 @@
 package me.mikolaj.trading.event;
 
 import me.mikolaj.trading.PlayerCache;
-import me.mikolaj.trading.menu.TestBazaar;
+import me.mikolaj.trading.menu.BazaarMainMenu;
 import me.mikolaj.trading.settings.Settings;
 import me.mikolaj.trading.utils.BazaarUtil;
 import org.bukkit.entity.Player;
@@ -11,8 +11,6 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.mineacademy.fo.remain.Remain;
 
 public class PlayerListener implements Listener {
-
-	//dzieki temu chyba nie bedzie sie tworzyla nowa instancja, mozna potem z ciekawosci zmierzyc czas czy to cos zmienia
 
 	@EventHandler
 	public void onInteract(final PlayerInteractAtEntityEvent event) {
@@ -31,7 +29,7 @@ public class PlayerListener implements Listener {
 				return;
 
 			if (PlayerCache.getCache(clickedPlayer).hasBazaar()) {
-				new TestBazaar(clickedPlayer).displayTo(event.getPlayer());
+				new BazaarMainMenu(clickedPlayer).displayTo(event.getPlayer());
 			}
 		}
 	}
