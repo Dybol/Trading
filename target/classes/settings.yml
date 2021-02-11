@@ -1,0 +1,15 @@
+Bazaars:
+  Enabled: true
+  Primary: world 20 255 20
+  Secondary: world -20 0 -20
+
+Trade_Command:
+  Enabled: true
+  Trading_Everywhere: false
+  Primary: world 20 255 20
+  Secondary: world -20 0 -20
+
+Log_Lag_Over_Milis: 100
+Debug: [ ]
+Version: 1
+Locale: "en"

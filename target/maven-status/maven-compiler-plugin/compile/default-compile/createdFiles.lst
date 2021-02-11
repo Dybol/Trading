@@ -1,0 +1,10 @@
+me\mikolaj\trading\settings\Settings$Bazaar.class
+me\mikolaj\trading\command\TradeCommand.class
+me\mikolaj\trading\event\PlayerListener.class
+me\mikolaj\trading\PlayerCache.class
+me\mikolaj\trading\menu\BazaarMenu.class
+me\mikolaj\trading\settings\Settings$Trade.class
+me\mikolaj\trading\settings\Settings.class
+me\mikolaj\trading\command\BazaarCommand.class
+me\mikolaj\trading\settings\Localization.class
+me\mikolaj\trading\TradingPlugin.class

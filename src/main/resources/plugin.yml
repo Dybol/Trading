@@ -1,0 +1,5 @@
+name: TradingPlugin
+version: ${project.version}
+main: ${main.class}
+author: mikolaj
+api-version: 1.13
