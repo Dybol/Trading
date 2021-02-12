@@ -5,11 +5,13 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.mineacademy.fo.collection.expiringmap.ExpiringMap;
 import org.mineacademy.fo.settings.YamlSectionConfig;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Getter
 public class PlayerCache extends YamlSectionConfig {
@@ -19,6 +21,7 @@ public class PlayerCache extends YamlSectionConfig {
 	private final UUID uuid;
 	private boolean hasBazaar = false;
 
+	private final ExpiringMap<UUID, Boolean> tradeOffersMap = ExpiringMap.builder().expiration(5, TimeUnit.MINUTES).build();
 
 	//TODO raczej stad bedzie trzeba zrobic usuwanie i przesuwanie tablicy
 	private final ItemStack[] content = new ItemStack[36];
@@ -51,7 +54,6 @@ public class PlayerCache extends YamlSectionConfig {
 		this.sellAmount[counter] = sellAmount;
 		this.buyAmount[counter] = buyAmount;
 		this.counter++;
-
 	}
 
 	//trzeba wczesniej zrobic safety checki
@@ -98,6 +100,10 @@ public class PlayerCache extends YamlSectionConfig {
 
 	public boolean hasBazaar() {
 		return this.hasBazaar;
+	}
+
+	public void addOfferToTradeMap(final UUID uuid) {
+		this.tradeOffersMap.put(uuid, true);
 	}
 
 	public static PlayerCache getCache(final Player player) {

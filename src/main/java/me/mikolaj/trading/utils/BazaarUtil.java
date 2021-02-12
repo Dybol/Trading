@@ -13,7 +13,7 @@ import java.util.List;
 
 @UtilityClass
 public class BazaarUtil {
-
+	
 	final static private Region bazaarReg = new Region(Settings.Bazaar.PRIMARY, Settings.Bazaar.SECONDARY);
 
 	public boolean isInBazaarRegion(final Player player) {
@@ -38,6 +38,13 @@ public class BazaarUtil {
 		meta.setLore(lore);
 		itemStack.setItemMeta(meta);
 		return itemStack;
+	}
+
+	//TODO do pomyslenia, bo bd trzeb sprawdzac przed kazdym tradem, czy grac ma odpowiednio duzo zlota
+	// rozmieniajac bloki na sztabki, a potem zabierac tylko czesc zlota i sztabek, tak zeby nie rozmieniac wszystkiego
+	public int changeGoldToGoldBlocks(final int amount) {
+		//to bd dzielenie calkowite
+		return amount / 9;
 	}
 
 }
