@@ -40,7 +40,7 @@ public class BazaarUtil {
 		return itemStack;
 	}
 
-	//TODO do pomyslenia, bo bd trzeb sprawdzac przed kazdym tradem, czy grac ma odpowiednio duzo zlota
+	//IMP do pomyslenia, bo bd trzeb sprawdzac przed kazdym tradem, czy grac ma odpowiednio duzo zlota
 	// rozmieniajac bloki na sztabki, a potem zabierac tylko czesc zlota i sztabek, tak zeby nie rozmieniac wszystkiego
 	public int changeGoldToGoldBlocks(final int amount) {
 		//to bd dzielenie calkowite

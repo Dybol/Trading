@@ -3,3 +3,6 @@ version: 1.0.0
 main: me.mikolaj.trading.TradingPlugin
 author: mikolaj
 api-version: 1.13
+commands:
+  wymiana:
+    description: "&2Proponuje wymiane innemu graczowi"

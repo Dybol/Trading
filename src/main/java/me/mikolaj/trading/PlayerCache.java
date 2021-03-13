@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.mineacademy.fo.Common;
 import org.mineacademy.fo.collection.expiringmap.ExpiringMap;
 import org.mineacademy.fo.settings.YamlSectionConfig;
 
@@ -21,15 +22,21 @@ public class PlayerCache extends YamlSectionConfig {
 	private final UUID uuid;
 	private boolean hasBazaar = false;
 
-	private final ExpiringMap<UUID, Boolean> tradeOffersMap = ExpiringMap.builder().expiration(5, TimeUnit.MINUTES).build();
+	private final ExpiringMap<UUID, Boolean> tradeOffersMap = ExpiringMap.builder().expiration(1, TimeUnit.MINUTES).build();
 
-	//TODO raczej stad bedzie trzeba zrobic usuwanie i przesuwanie tablicy
 	private final ItemStack[] content = new ItemStack[36];
 	private final ItemMeta[] meta = new ItemMeta[36];
 	//ilosc zlota, za jaka zwykly gracz kupuje item od bazaarplayer - cena sprzedaży
 	//sell i buy z punktu widzenia gracza ktory ma bazar
 	private final Integer[] sellAmount = new Integer[36];
 	private final Integer[] buyAmount = new Integer[36];
+
+	@Getter
+	private boolean isInTradeEnd;
+
+	ItemStack[] inventoryBeforeTrade = new ItemStack[36];
+
+	//todo
 
 	private int counter = 0;
 	private Location bazaarLoc;
@@ -44,7 +51,7 @@ public class PlayerCache extends YamlSectionConfig {
 
 	@Override
 	protected void onLoadFinish() {
-		//TODO czy oplaca sie zapisywac dane do pliku na dysku? nw chyba n
+		//Czy oplaca sie zapisywac dane do pliku na dysku? nw chyba n
 		//this.hasBazaar = getBoolean("Has_Bazaar");
 	}
 
@@ -79,6 +86,27 @@ public class PlayerCache extends YamlSectionConfig {
 		return false;
 	}
 
+	public void createInventorySnapshot(final Player player) {
+		int counter = 0;
+		for (final ItemStack item : player.getInventory().getStorageContents()) {
+			System.out.println("wywolano " + item);
+			this.inventoryBeforeTrade[counter] = item == null ? null : item.clone();
+			counter++;
+		}
+		System.out.println("Wywolalo sie " + counter + " razy");
+	}
+
+	public void printEverything() {
+		for (final ItemStack item : this.inventoryBeforeTrade)
+			System.out.println("Item: " + item);
+	}
+
+	//todo
+	public void restorePlayerSnapshot(final Player player) {
+		Common.runLater(() -> player.getInventory().setContents(this.inventoryBeforeTrade));
+		//Arrays.fill(this.inventoryBeforeTrade, null); //todo dodalem to zeby nie zajmowac pamieci ale hgw czy warto
+	}
+
 	public void clearContent() {
 		Arrays.fill(this.content, null);
 		Arrays.fill(this.meta, null);
@@ -97,6 +125,9 @@ public class PlayerCache extends YamlSectionConfig {
 		this.bazaarLoc = location;
 	}
 
+	public void setIsInTradeEnd(final boolean isInTradeEnd) {
+		this.isInTradeEnd = isInTradeEnd;
+	}
 
 	public boolean hasBazaar() {
 		return this.hasBazaar;

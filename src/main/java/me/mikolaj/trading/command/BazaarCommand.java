@@ -22,15 +22,15 @@ public class BazaarCommand extends SimpleCommand {
 
 	@Override
 	protected void onCommand() {
+		checkConsole();
 		final String action = args[0];
 		final Player player = getPlayer();
 		final PlayerCache cache = PlayerCache.getCache(player);
 
-		if("dodaj".equals(action)) {
+		if ("dodaj".equals(action)) {
 			if (args.length == 1 || args.length == 2)
 				returnTell("&cUzyj komendy poprawnie - /bazar dodaj <cenaSprzedazy> <cenaKupna>");
 
-			//TODO dodac to do stalych pozniej
 			if (cache.getCounter() == Constans.MAX_ITEMS_IN_BAZAAR) {
 				returnTell("&cDodales maksymalna ilosc przedmiotow do bazaru!");
 			}
@@ -53,7 +53,6 @@ public class BazaarCommand extends SimpleCommand {
 
 					cache.addEverything(item, item.getItemMeta(), sellAmount, buyAmount);
 					//player.getInventory().remove(player.getItemInHand());
-					//TODO poprawic wiadomosc zeby bylo o sprzedazy i kupnie
 					Messenger.success(player, "Dodales " + item.toString() + ". Sprzedajesz go za " + sellAmount + " zlota, a kupujesz za " + buyAmount);
 				} else {
 					Messenger.error(player, "Musisz miec w rece jakis item, ktory chcesz dodac!");
@@ -100,7 +99,7 @@ public class BazaarCommand extends SimpleCommand {
 			Messenger.announce(player, "Zamknales bazar!");
 
 		} else if ("nazwa".equals(action)) {
-			//TODO trzeba dopracowac - zeby nad graczem sie wyswietlalo wszystko ;)
+			//IMP trzeba dopracowac - zeby nad graczem sie wyswietlalo wszystko ;)
 			player.setCustomName("OTWARTE XD");
 			player.setCustomNameVisible(true);
 			Messenger.success(player, "Ustawiles nazwe");
