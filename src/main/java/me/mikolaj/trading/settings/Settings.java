@@ -22,6 +22,7 @@ public class Settings extends SimpleSettings {
 			PRIMARY = get("Primary", Location.class);
 			SECONDARY = get("Secondary", Location.class);
 			MAX_ITEMS_IN_BAZAAR = getInteger("Max_Items_In_Bazaar");
+			//getOrSetDefault() <-- moze się przydać
 		}
 	}
 

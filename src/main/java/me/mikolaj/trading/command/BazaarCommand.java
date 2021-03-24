@@ -11,20 +11,26 @@ import org.bukkit.potion.PotionEffectType;
 import org.mineacademy.fo.Common;
 import org.mineacademy.fo.Messenger;
 import org.mineacademy.fo.command.SimpleCommand;
+import org.mineacademy.fo.remain.CompMaterial;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BazaarCommand extends SimpleCommand {
 	public BazaarCommand() {
 		super("bazar");
-		setMinArguments(1);
+		//setMinArguments(1);
 	}
 
 	@Override
 	protected void onCommand() {
 		checkConsole();
-		final String action = args[0];
 		final Player player = getPlayer();
+		if (args.length == 0) {
+			Messenger.info(player, "Uzyj komendy /bazar info po wiecej informacji");
+			return;
+		}
+		final String action = args[0];
 		final PlayerCache cache = PlayerCache.getCache(player);
 
 		if ("dodaj".equals(action)) {
@@ -50,11 +56,16 @@ public class BazaarCommand extends SimpleCommand {
 
 				//dodac dokladnie ten item co ma gracz
 				if (!item.toString().contains("AIR x 0")) {//czy na pewno to dziala??
+					if (CompMaterial.fromItem(item) == CompMaterial.GOLD_INGOT || CompMaterial.fromItem(item) == CompMaterial.GOLD_BLOCK) {
+						Messenger.warn(player, "Nie mozesz handlowac waluta! Item nie został dodany.");
+						return;
+					}
 
 					cache.addEverything(item, item.getItemMeta(), sellAmount, buyAmount);
 					//player.getInventory().remove(player.getItemInHand());
 					Messenger.success(player, "Dodales " + item.toString() + ". Sprzedajesz go za " + sellAmount + " zlota, a kupujesz za " + buyAmount);
 				} else {
+					//to dziala
 					Messenger.error(player, "Musisz miec w rece jakis item, ktory chcesz dodac!");
 				}
 			} catch (final NumberFormatException ex) {
@@ -116,15 +127,25 @@ public class BazaarCommand extends SimpleCommand {
 			if (cache.hasBazaar())
 				returnTell("&cNie mozesz usuwac itemow z otwartego bazaru!");
 			new BazaarDeleteMenu(player).displayTo(player);
+		} else if ("info".equals(action)) {
+			Messenger.info(player, "&aDodawanie itemu: &7/bazar dodaj <cenaSprzedazy> <cenaKupna>. Jezeli nie chcesz kupowac / sprzedawac wpisz 0");
+			Messenger.info(player, "&aOtwieranie bazaru: &7/bazar otworz. Nie bedziesz sie mogl ruszac, dopoki nie zamkniesz bazaru");
+			Messenger.info(player, "&aLista dodanych itemow: &7/bazar lista");
+			Messenger.info(player, "&aUstawianie nazwy(poki co nie dziala): &7/bazar nazwa");
+			Messenger.info(player, "&aUsuwanie dodanego itemu: &7/bazar usunitem");
+			Messenger.info(player, "&aZamykanie bazaru: &7/bazar zamknij");
+
+		} else {
+			Messenger.info(player, "Uzyj komendy /bazar info po wiecej informacji");
 		}
 	}
 
 	@Override
 	protected List<String> tabComplete() {
-		if(args.length == 1) {
-			return completeLastWord("dodaj", "otworz", "zamknij", "lista", "usunitem");
+		if (args.length == 1) {
+			return completeLastWord("dodaj", "otworz", "zamknij", "lista", "usunitem", "info");
 		}
-		return null;
+		return new ArrayList<>();
 	}
 
 }

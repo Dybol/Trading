@@ -98,4 +98,5 @@ public class TradeTestCommand implements CommandExecutor {
 		return inv;
 
 	}
+	
 }

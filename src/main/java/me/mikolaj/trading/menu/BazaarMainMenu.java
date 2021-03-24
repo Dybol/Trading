@@ -2,13 +2,11 @@ package me.mikolaj.trading.menu;
 
 import me.mikolaj.trading.PlayerCache;
 import me.mikolaj.trading.utils.BazaarUtil;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.mineacademy.fo.Common;
-import org.mineacademy.fo.PlayerUtil;
 import org.mineacademy.fo.menu.Menu;
 import org.mineacademy.fo.menu.button.Button;
 import org.mineacademy.fo.menu.model.ItemCreator;
@@ -91,7 +89,7 @@ public class BazaarMainMenu extends Menu {
 		return null;
 	}
 
-	private static final class BuyMenu extends Menu {
+	private final class BuyMenu extends Menu {
 
 		private final Button buyButton;
 		private final Button backButton;
@@ -109,10 +107,12 @@ public class BazaarMainMenu extends Menu {
 					final Inventory bazaarInventory = bazaarPlayer.getInventory();
 
 					//Sprawdzanie czy gracze maja odpowiednie itemy
-					if (player.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), sellAmount)) {
+					if (player.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), sellAmount) || BazaarUtil.calculateGoldWithGoldBlocks(player) > sellAmount) {
 						if (bazaarInventory.containsAtLeast(itemStack, itemStack.getAmount())) {
 							bazaarInventory.removeItem(itemStack);
-							bazaarInventory.addItem(new ItemStack(Material.GOLD_INGOT, sellAmount));
+							//bazaarInventory.addItem(new ItemStack(Material.GOLD_INGOT, sellAmount));
+							BazaarUtil.changeGoldToGoldBlocks(bazaarPlayer, sellAmount);
+
 							Common.tell(bazaarPlayer, "&aUdalo Ci sie sprzedac " + BazaarUtil.getItemAndAmountFormated(itemStack, sellAmount));
 						} else {
 							animateTitle("&cOferta wyprzedana!");
@@ -120,9 +120,13 @@ public class BazaarMainMenu extends Menu {
 							return;
 						}
 
-						PlayerUtil.take(player, CompMaterial.GOLD_INGOT, sellAmount);
+						//PlayerUtil.take(player, CompMaterial.GOLD_INGOT, sellAmount);
+						BazaarUtil.changeGoldToGoldBlocks(player, -sellAmount);
+
 						player.getInventory().addItem(itemStack);
 						animateTitle("&2Transakcja udana!");
+						onTransactionSuccess(bazaarPlayer, player);
+						//todo wywolywac event onBazaarSuccess() ? moze sie przydac podczas np zamiany zlota na bloki itp
 						Common.runLater(20, () -> new BazaarMainMenu(bazaarPlayer).displayTo(player));
 
 					} else {
@@ -172,7 +176,7 @@ public class BazaarMainMenu extends Menu {
 	}
 
 
-	private static final class SellMenu extends Menu {
+	private final class SellMenu extends Menu {
 
 		private final Button sellButton;
 		private final Button backButton;
@@ -190,10 +194,11 @@ public class BazaarMainMenu extends Menu {
 					final Inventory playerInventory = player.getInventory();
 
 					//Sprawdzanie, czy gracz i bazaarplayer maja odpowiednie itemy
-					if (bazaarPlayer.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), buyAmount)) {
+					if (bazaarPlayer.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), buyAmount) || BazaarUtil.calculateGoldWithGoldBlocks(bazaarPlayer) > buyAmount) {
 						if (playerInventory.containsAtLeast(itemStack, itemStack.getAmount())) {
+							BazaarUtil.changeGoldToGoldBlocks(player, buyAmount);
 							playerInventory.removeItem(itemStack);
-							playerInventory.addItem(new ItemStack(Material.GOLD_INGOT, buyAmount));
+							//playerInventory.addItem(new ItemStack(Material.GOLD_INGOT, buyAmount));
 							Common.tell(bazaarPlayer, "&aUdalo Ci sie kupic " + BazaarUtil.getItemAndAmountFormated(itemStack, buyAmount));
 						} else {
 							animateTitle("&cNie masz juz wiecej itemow!");
@@ -201,9 +206,13 @@ public class BazaarMainMenu extends Menu {
 							return;
 						}
 
-						PlayerUtil.take(bazaarPlayer, CompMaterial.GOLD_INGOT, buyAmount);
+						//PlayerUtil.take(bazaarPlayer, CompMaterial.GOLD_INGOT, buyAmount);
+						BazaarUtil.changeGoldToGoldBlocks(bazaarPlayer, -buyAmount);
 						bazaarPlayer.getInventory().addItem(itemStack);
 						animateTitle("&2Transakcja udana!");
+
+						onTransactionSuccess(player, bazaarPlayer);
+
 						Common.runLater(20, () -> new BazaarMainMenu(bazaarPlayer).displayTo(player));
 
 					} else {
@@ -250,5 +259,12 @@ public class BazaarMainMenu extends Menu {
 			return CompMaterial.GLASS_PANE.toItem();
 
 		}
+	}
+
+	public void onTransactionSuccess(final Player seller, final Player buyer) {
+//		final Inventory sellerInv = seller.getInventory();
+		System.out.println("Z sukcesywnej transakcji");
+		//BazaarUtil.changeGoldToGoldBlocks(seller, 0);
+		//BazaarUtil.changeGoldToGoldBlocks(buyer, 0);
 	}
 }

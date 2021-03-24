@@ -65,7 +65,7 @@ public class PlayerListener implements Listener {
 				final Player loop_player = (Player) humanEntity;
 				final PlayerCache loopPlayerCache = PlayerCache.getCache(loop_player);
 				if (!loopPlayerCache.isInTradeEnd()) { //potrzebne, bo jak na koncu dajemy graczom itemy i zamykamy eq to aktywuje sie ten backup
-					loopPlayerCache.restorePlayerSnapshot(loop_player);
+					Common.runLater(() -> loopPlayerCache.restorePlayerSnapshot(loop_player));
 
 					Common.runLater(loop_player::closeInventory);
 				}
@@ -115,6 +115,7 @@ public class PlayerListener implements Listener {
 					&& event.getRawSlot() != 5 && event.getRawSlot() != 48) {
 
 
+				//cofamy sie do dwoch czerwonych
 				if (paneAt5.getType() == Material.YELLOW_STAINED_GLASS_PANE && event.getClickedInventory() != null && event.getCurrentItem() != null) {
 					if (event.getClickedInventory().getViewers().size() == 2) {
 						Common.runLater(() -> event.getClickedInventory().setItem(5, new ItemStack(Material.RED_STAINED_GLASS_PANE, 1)));
@@ -129,7 +130,7 @@ public class PlayerListener implements Listener {
 						//event.getClickedInventory().setItem(48, new ItemStack(Material.RED_STAINED_GLASS_PANE, 1));
 					}
 				}
-				//tutaj wywolamy nowa metode.
+				//tutaj wywolamy nowa metode. todo nic w niej nie ma waznego, pewnie mozna usunac.
 				handleItemManipulation(event);
 
 
@@ -211,6 +212,7 @@ public class PlayerListener implements Listener {
 
 				}
 				event.setCancelled(true);
+				//jezeli juz wszystko jest ok - ostatni moment, brakuje jednego panelu - zolty i zielony w tym momencie
 			} else if (paneAt5 != null && paneAt48 != null &&
 					((paneAt5.getType() == Material.GREEN_STAINED_GLASS_PANE && paneAt48.getType() == Material.YELLOW_STAINED_GLASS_PANE)
 							|| paneAt5.getType() == Material.YELLOW_STAINED_GLASS_PANE && paneAt48.getType() == Material.GREEN_STAINED_GLASS_PANE)
@@ -227,7 +229,7 @@ public class PlayerListener implements Listener {
 					if (viewer instanceof Player) {
 						final PlayerCache cache = PlayerCache.getCache((Player) viewer);
 						cache.setIsInTradeEnd(true);
-						Messenger.info(viewer, "&aWymiana udana");
+						Messenger.info(viewer, "&aWymiana udana!");
 						Common.runLater(viewer::closeInventory);
 					}
 				}
