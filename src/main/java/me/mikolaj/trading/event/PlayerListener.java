@@ -7,6 +7,7 @@ import me.mikolaj.trading.utils.BazaarUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,6 +33,13 @@ public class PlayerListener implements Listener {
 
 	@EventHandler
 	public void onInteract(final PlayerInteractAtEntityEvent event) {
+		if (Settings.Bazaar.ENABLED) {
+			if (event.getRightClicked().getType() == EntityType.ARMOR_STAND && BazaarUtil.isInBazaarRegion(event.getRightClicked().getLocation())) {
+				event.setCancelled(true);
+				System.out.println("anulowaon");
+			}
+		}
+
 		if (!(event.getRightClicked() instanceof Player))
 			return;
 
@@ -40,6 +48,7 @@ public class PlayerListener implements Listener {
 
 		//IMP dodac try / catch i wyswietlac blad jak bedzie wprowadzona zla lokalizacja.
 		if (Settings.Bazaar.ENABLED) {
+
 			final Player clickedPlayer = (Player) event.getRightClicked();
 
 			if (!BazaarUtil.isInBazaarRegion(clickedPlayer)

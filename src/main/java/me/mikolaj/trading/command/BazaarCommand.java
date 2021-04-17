@@ -4,6 +4,8 @@ import me.mikolaj.trading.PlayerCache;
 import me.mikolaj.trading.menu.BazaarDeleteMenu;
 import me.mikolaj.trading.utils.BazaarUtil;
 import me.mikolaj.trading.utils.Constans;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -73,34 +75,54 @@ public class BazaarCommand extends SimpleCommand {
 			}
 		}
 		else if("otworz".equals(action)) {
-			if(!BazaarUtil.isInBazaarRegion(player)) {
+			if (!BazaarUtil.isInBazaarRegion(player)) {
 				Messenger.error(player, "Musisz znajdowac sie w odpowiednim miejscu!");
 				return;
 			}
 
-			if(cache.getCounter() == 0) {
+			if (cache.getCounter() == 0) {
 				Messenger.error(player, "Musisz dodac chociaz 1 item, aby moc otworzyc bazar!");
 				return;
 			}
 
-			if(cache.hasBazaar()) {
+			if (cache.hasBazaar()) {
 				Messenger.error(player, "Juz otworzyles bazar! Aby go zamknac, wpisz /bazar zamknij");
 				return;
 			}
+
+			//todo dorobione bazary
+			if (cache.getBazaarName() != null) {
+				final ArmorStand stand = (ArmorStand) player.getWorld().spawnEntity(player.getLocation().clone().add(0, 0, 0), EntityType.ARMOR_STAND);
+				cache.setBazaarStand(stand);
+
+				stand.setVisible(false);
+				stand.setCustomName(Common.colorize(cache.getBazaarName()));
+				stand.setCustomNameVisible(true);
+				stand.setGravity(false);
+
+			}
+
 			cache.setHasBazaar(true);
 			cache.setBazaarLoc(player.getLocation());
 			Messenger.success(player, "Otworzyles bazar!");
 
 			//dzieki bazaar taskowi gracz stoi w miejscu !
-		    player.setWalkSpeed(0);
+			player.setWalkSpeed(0);
 			player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 20 * 100000, 100000));
 
 		}
 		else if("zamknij".equals(action)) {
-			if(!cache.hasBazaar()) {
+			if (!cache.hasBazaar()) {
 				Messenger.error(player, "Nie otworzyles jeszcze bazaru!");
 				return;
 			}
+
+			if (cache.getBazaarStand() != null) {
+				cache.getBazaarStand().remove();
+				cache.setBazaarStand(null);
+				cache.setBazaarName(null);
+			}
+
 			player.setWalkSpeed(0.2f);
 			player.removePotionEffect(PotionEffectType.JUMP);
 			cache.setHasBazaar(false);
@@ -110,9 +132,29 @@ public class BazaarCommand extends SimpleCommand {
 			Messenger.announce(player, "Zamknales bazar!");
 
 		} else if ("nazwa".equals(action)) {
-			//IMP trzeba dopracowac - zeby nad graczem sie wyswietlalo wszystko ;)
-			player.setCustomName("OTWARTE XD");
-			player.setCustomNameVisible(true);
+			if (args.length == 1) {
+				Messenger.error(player, "Wprowadz nazwe bazaru!");
+				return;
+			}
+
+			final StringBuilder s = new StringBuilder();
+
+			int counter = 0;
+			for (int i = 1; i < args.length; i++) {
+				counter += args[i].length();
+				s.append(args[i]);
+				if (i != args.length - 1)
+					s.append(" ");
+
+				System.out.println("wywo " + i);
+			}
+
+			if (counter > 20) {
+				Messenger.error(player, "Nazwa bazaru moze miec maksymalnie 20 znakow!");
+				return;
+			}
+
+			cache.setBazaarName(s.toString());
 			Messenger.success(player, "Ustawiles nazwe");
 
 		} else if ("lista".equals(action)) {
@@ -131,7 +173,7 @@ public class BazaarCommand extends SimpleCommand {
 			Messenger.info(player, "&aDodawanie itemu: &7/bazar dodaj <cenaSprzedazy> <cenaKupna>. Jezeli nie chcesz kupowac / sprzedawac wpisz 0");
 			Messenger.info(player, "&aOtwieranie bazaru: &7/bazar otworz. Nie bedziesz sie mogl ruszac, dopoki nie zamkniesz bazaru");
 			Messenger.info(player, "&aLista dodanych itemow: &7/bazar lista");
-			Messenger.info(player, "&aUstawianie nazwy(poki co nie dziala): &7/bazar nazwa");
+			Messenger.info(player, "&aUstawianie nazwy: &7/bazar nazwa");
 			Messenger.info(player, "&aUsuwanie dodanego itemu: &7/bazar usunitem");
 			Messenger.info(player, "&aZamykanie bazaru: &7/bazar zamknij");
 
@@ -143,7 +185,7 @@ public class BazaarCommand extends SimpleCommand {
 	@Override
 	protected List<String> tabComplete() {
 		if (args.length == 1) {
-			return completeLastWord("dodaj", "otworz", "zamknij", "lista", "usunitem", "info");
+			return completeLastWord("dodaj", "otworz", "zamknij", "lista", "usunitem", "info", "nazwa");
 		}
 		return new ArrayList<>();
 	}

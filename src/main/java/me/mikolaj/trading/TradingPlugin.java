@@ -47,6 +47,10 @@ public class TradingPlugin extends SimplePlugin {
 			cache.setHasBazaar(false);
 			cache.clearContent();
 			cache.setBazaarLoc(null);
+			
+			cache.getBazaarStand().remove();
+			cache.setBazaarStand(null);
+			cache.setBazaarName(null);
 		}
 	}
 

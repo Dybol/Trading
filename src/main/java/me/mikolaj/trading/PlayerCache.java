@@ -1,7 +1,9 @@
 package me.mikolaj.trading;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Location;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -20,7 +22,12 @@ public class PlayerCache extends YamlSectionConfig {
 	private static final HashMap<UUID, PlayerCache> cacheMap = new HashMap<>();
 
 	private final UUID uuid;
+
 	private boolean hasBazaar = false;
+	@Setter
+	private String bazaarName = null;
+	@Setter
+	private ArmorStand bazaarStand = null;
 
 	private final ExpiringMap<UUID, Boolean> tradeOffersMap = ExpiringMap.builder().expiration(1, TimeUnit.MINUTES).build();
 
