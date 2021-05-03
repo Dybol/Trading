@@ -14,3 +14,4 @@ Full documentation and translation avaliable only in Polish language.
 ![image 2](https://i.imgur.com/qX2U6sI.png)
 ![image 3](https://i.imgur.com/LqtFT2A.png)
 ![image 4](https://i.imgur.com/gDxb53g.png)
+![image 5](https://i.imgur.com/5kVAHzv.png)
