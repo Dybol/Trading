@@ -10,13 +10,14 @@
 
     <!-- Your MC test server location for Windows
      C:\Users\Mikołaj\OneDrive - Politechnika Wroclawska\plugins\mc server PC
-     C:\Users\User\OneDrive - Politechnika Wroclawska\plugins\mc server LAPTOP-->
-    <condition property="serverPath" value="C:\Users\User\Desktop\mc server bazars">
-        <os family="windows" />
+     C:\Users\User\OneDrive - Politechnika Wroclawska\plugins\mc server LAPTOP
+     C:\Users\Mikołaj\Desktop\mc server bazars   LAPEK-->
+    <condition property="serverPath" value="C:\Users\Mikołaj\OneDrive - Politechnika Wroclawska\plugins\mc server">
+        <os family="windows"/>
     </condition>
 
     <!-- Ninja: Read your pom.xml file to find the Foundation version we will be using -->
-    <xmlproperty file="pom.xml" prefix="pom" keeproot="false" />
+    <xmlproperty file="pom.xml" prefix="pom" keeproot="false"/>
     <property name="foundation.version" value="${pom.properties.foundation.version}"/>
 
     <!-- Finally, compile the plugin -->

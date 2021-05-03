@@ -3,6 +3,7 @@ Bazaars:
   Primary: world 20 255 20
   Secondary: world -20 0 -20
   Max_Items_In_Bazaar: 25
+  Bazaars_Everywhere: false
 
 Trade_Command:
   Enabled: true

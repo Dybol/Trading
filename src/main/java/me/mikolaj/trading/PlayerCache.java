@@ -19,35 +19,82 @@ import java.util.concurrent.TimeUnit;
 @Getter
 public class PlayerCache extends YamlSectionConfig {
 
+	/**
+	 * Mapa wszystkich cachow graczy
+	 */
 	private static final HashMap<UUID, PlayerCache> cacheMap = new HashMap<>();
 
+	/**
+	 * UUID
+	 */
 	private final UUID uuid;
 
+	/**
+	 * Czy gracz ma bazar
+	 */
 	private boolean hasBazaar = false;
+
+	/**
+	 * Nazwa bazaru
+	 */
 	@Setter
 	private String bazaarName = null;
+
+	/**
+	 * ArmorStand jako nazwa
+	 */
 	@Setter
 	private ArmorStand bazaarStand = null;
 
+	/**
+	 * Mapa ofert wymiany danego gracza
+	 */
 	private final ExpiringMap<UUID, Boolean> tradeOffersMap = ExpiringMap.builder().expiration(1, TimeUnit.MINUTES).build();
 
+	/**
+	 * Itemy z ekwipunku gracza
+	 */
 	private final ItemStack[] content = new ItemStack[36];
+	/**
+	 * Metadata itemow
+	 */
 	private final ItemMeta[] meta = new ItemMeta[36];
-	//ilosc zlota, za jaka zwykly gracz kupuje item od bazaarplayer - cena sprzedaży
-	//sell i buy z punktu widzenia gracza ktory ma bazar
+
+	/**
+	 * Ilosc zlota za jaka gracz kupuje itemy od danego gracza
+	 */
 	private final Integer[] sellAmount = new Integer[36];
+	/**
+	 * Ilosc zlota za jaka gracz sprzedaje itemy od danego gracza
+	 */
 	private final Integer[] buyAmount = new Integer[36];
 
+	/**
+	 * Zmienna pomocnicza sprawdzajaca czy gracz jest w ostatnim etapie wymiany
+	 */
 	@Getter
 	private boolean isInTradeEnd;
 
+	/**
+	 * Kopia itemow przed rozpoczeciem wymiany
+	 */
 	ItemStack[] inventoryBeforeTrade = new ItemStack[36];
 
-	//todo
-
+	/**
+	 * Licznik pomocniczy do wypelniania tablic
+	 */
 	private int counter = 0;
+
+	/**
+	 * Lokalizacja bazaru
+	 */
 	private Location bazaarLoc;
 
+	/**
+	 * Konstruktor
+	 *
+	 * @param uuid - uuid gracza
+	 */
 	protected PlayerCache(final UUID uuid) {
 		super(uuid.toString());
 		this.uuid = uuid;
@@ -55,13 +102,15 @@ public class PlayerCache extends YamlSectionConfig {
 		loadConfiguration(NO_DEFAULT, "data.db");
 	}
 
-
-	@Override
-	protected void onLoadFinish() {
-		//Czy oplaca sie zapisywac dane do pliku na dysku? nw chyba n
-		//this.hasBazaar = getBoolean("Has_Bazaar");
-	}
-
+	/**
+	 * Metoda odpowiadajaca za dodawanie itemow do tablic
+	 * Wywolywania, gdy gracz dodaje dany item do swojego bazaru
+	 *
+	 * @param item       - item
+	 * @param meta       - metadata
+	 * @param sellAmount - cena sprzedazy
+	 * @param buyAmount  - cena kupna
+	 */
 	public void addEverything(final ItemStack item, final ItemMeta meta, final int sellAmount, final int buyAmount) {
 		this.content[counter] = item;
 		this.meta[counter] = meta;
@@ -71,6 +120,13 @@ public class PlayerCache extends YamlSectionConfig {
 	}
 
 	//trzeba wczesniej zrobic safety checki
+
+	/**
+	 * Metoda odpowiadajaca za usuwanie itemu z bazaru
+	 *
+	 * @param itemStack - item
+	 * @return - sukces operacji
+	 */
 	public boolean deleteItem(final ItemStack itemStack) {
 		for (int i = 0; i < counter; i++) {
 			if (itemStack.equals(content[i])) {
@@ -93,27 +149,32 @@ public class PlayerCache extends YamlSectionConfig {
 		return false;
 	}
 
+	/**
+	 * Metoda odpowiadajaca za stworzenie kopii ekwipunku
+	 * Wywolywana przed rozpoczeciem wymiany
+	 *
+	 * @param player - gracz
+	 */
 	public void createInventorySnapshot(final Player player) {
 		int counter = 0;
 		for (final ItemStack item : player.getInventory().getStorageContents()) {
-			System.out.println("wywolano " + item);
 			this.inventoryBeforeTrade[counter] = item == null ? null : item.clone();
 			counter++;
 		}
-		System.out.println("Wywolalo sie " + counter + " razy");
 	}
 
-	public void printEverything() {
-		for (final ItemStack item : this.inventoryBeforeTrade)
-			System.out.println("Item: " + item);
-	}
-
-	//todo
+	/**
+	 * Metoda odpowiadajaca za przywrocenie "zrzutu" ekwipunku gracza
+	 *
+	 * @param player - gracz
+	 */
 	public void restorePlayerSnapshot(final Player player) {
 		Common.runLater(() -> player.getInventory().setContents(this.inventoryBeforeTrade));
-		//Arrays.fill(this.inventoryBeforeTrade, null); //todo dodalem to zeby nie zajmowac pamieci ale hgw czy warto
 	}
 
+	/**
+	 * Czyszczenie tablic z itemami z bazaru
+	 */
 	public void clearContent() {
 		Arrays.fill(this.content, null);
 		Arrays.fill(this.meta, null);
@@ -144,10 +205,22 @@ public class PlayerCache extends YamlSectionConfig {
 		this.tradeOffersMap.put(uuid, true);
 	}
 
+	/**
+	 * Metoda pobierajaca z pliku lub z mapy cache gracza
+	 *
+	 * @param player - gracz
+	 * @return - cache danego gracza
+	 */
 	public static PlayerCache getCache(final Player player) {
 		return getCache(player.getUniqueId());
 	}
 
+	/**
+	 * Metoda pobierajaca z pliku lub z mapy cache gracza
+	 *
+	 * @param uuid - uuid gracza
+	 * @return - cache danego gracza
+	 */
 	public static PlayerCache getCache(final UUID uuid) {
 		PlayerCache cache = cacheMap.get(uuid);
 

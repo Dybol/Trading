@@ -12,12 +12,26 @@ import org.mineacademy.fo.menu.button.Button;
 import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
 
+/**
+ * Bazarowe menu
+ */
 public class BazaarMainMenu extends Menu {
 
+	/**
+	 * Gracz, ktory ma bazar
+	 */
 	private final Player bazaarPlayer;
 
+	/**
+	 * Zawartosc menu - kazdy wystawiony item jest przyciskiem
+	 */
 	private final Button[] itemButton = new Button[36];
 
+	/**
+	 * Konstruktor, w ktorym ustawiamy wiekszosc rzeczy
+	 *
+	 * @param bazaarPlayer - gracz, ktory ma bazar
+	 */
 	public BazaarMainMenu(final Player bazaarPlayer) {
 
 		this.bazaarPlayer = bazaarPlayer;
@@ -34,10 +48,17 @@ public class BazaarMainMenu extends Menu {
 					.lore("&2Sprzedajesz za &6" + cache.getBuyAmount()[i] + " zlota.")
 					.build().make();
 
-			//this.itemButton[i] = new ButtonMenu(new BuyMenu(bazaarPlayer, item, cache.getAmount()[i]), item);
 			final ItemStack finalItem = item;
 			final int finalI = i;
+
 			this.itemButton[i] = new Button() {
+				/**
+				 * Metoda wywyolujaca sie podczas klikniecia na przycisk z przedmiotem
+				 *
+				 * @param player    - gracz
+				 * @param menu      - dane menu
+				 * @param clickType - rodzaj klikniecia mysza
+				 */
 				@Override
 				public void onClickedInMenu(final Player player, final Menu menu, final ClickType clickType) {
 
@@ -62,6 +83,11 @@ public class BazaarMainMenu extends Menu {
 					}
 				}
 
+				/**
+				 * Metoda zwracajaca dany item
+				 *
+				 * @return - item
+				 */
 				@Override
 				public ItemStack getItem() {
 					return finalItem;
@@ -70,6 +96,12 @@ public class BazaarMainMenu extends Menu {
 		}
 	}
 
+	/**
+	 * Metoda zwracajaca itemy na bazarze
+	 *
+	 * @param slot - slot (miejsce w menu)
+	 * @return - item, ktory ma zostac wyswietlony
+	 */
 	@Override
 	public ItemStack getItemAt(final int slot) {
 
@@ -77,40 +109,57 @@ public class BazaarMainMenu extends Menu {
 		if (slot < cache.getCounter()) {
 			return itemButton[slot].getItem();
 		}
-/*
-		if(slot < cache.getCounter()) {
-			final ItemStack item = cache.getContent()[slot];
-			item.setItemMeta(cache.getMeta()[slot]);
 
-			return ItemCreator.of(item)
-					.lore("&2Cena: &6" + cache.getAmount()[slot] + " zlota.")
-					.build().make();
-		}*/
 		return null;
 	}
 
+	/**
+	 * Menu kupna itemu od gracza
+	 */
 	private final class BuyMenu extends Menu {
 
+		/**
+		 * Przycisk kupna
+		 */
 		private final Button buyButton;
+
+		/**
+		 * Przycisk powrotu
+		 */
 		private final Button backButton;
 
+		/**
+		 * Item, ktory chcemy kupic
+		 */
 		private final ItemStack itemStack;
 
+		/**
+		 * Konstruktor, w ktorym ustawiamy wiekszosc rzecyz
+		 * @param bazaarPlayer - gracz, ktory ma bazar
+		 * @param itemStack - item, ktory bedziemy kupowac
+		 * @param sellAmount - cena danego itemu
+		 */
 		private BuyMenu(final Player bazaarPlayer, final ItemStack itemStack, final int sellAmount) {
 
 			this.itemStack = itemStack;
 			setTitle("&2Kupujesz za: &6" + sellAmount + " zlota.");
 
 			this.buyButton = new Button() {
+
+				/**
+				 * Metoda wywolywana podczas klikniecia na przycisk kupna
+				 * @param player - gracz
+				 * @param menu - menu
+				 * @param clickType - rodzaj klikniecia mysza
+				 */
 				@Override
 				public void onClickedInMenu(final Player player, final Menu menu, final ClickType clickType) {
 					final Inventory bazaarInventory = bazaarPlayer.getInventory();
 
 					//Sprawdzanie czy gracze maja odpowiednie itemy
-					if (player.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), sellAmount) || BazaarUtil.calculateGoldWithGoldBlocks(player) > sellAmount) {
+					if (player.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), sellAmount) || BazaarUtil.calculateGoldWithGoldBlocks(player) >= sellAmount) {
 						if (bazaarInventory.containsAtLeast(itemStack, itemStack.getAmount())) {
 							bazaarInventory.removeItem(itemStack);
-							//bazaarInventory.addItem(new ItemStack(Material.GOLD_INGOT, sellAmount));
 							BazaarUtil.changeGoldToGoldBlocks(bazaarPlayer, sellAmount);
 
 							Common.tell(bazaarPlayer, "&aUdalo Ci sie sprzedac " + BazaarUtil.getItemAndAmountFormated(itemStack, sellAmount));
@@ -120,13 +169,12 @@ public class BazaarMainMenu extends Menu {
 							return;
 						}
 
-						//PlayerUtil.take(player, CompMaterial.GOLD_INGOT, sellAmount);
 						BazaarUtil.changeGoldToGoldBlocks(player, -sellAmount);
 
 						player.getInventory().addItem(itemStack);
 						animateTitle("&2Transakcja udana!");
+
 						onTransactionSuccess(bazaarPlayer, player);
-						//todo wywolywac event onBazaarSuccess() ? moze sie przydac podczas np zamiany zlota na bloki itp
 						Common.runLater(20, () -> new BazaarMainMenu(bazaarPlayer).displayTo(player));
 
 					} else {
@@ -136,6 +184,11 @@ public class BazaarMainMenu extends Menu {
 					}
 				}
 
+				/**
+				 * Metoda zwracajaca dany item do wyswietlenia
+				 *
+				 * @return - item
+				 */
 				@Override
 				public ItemStack getItem() {
 					return ItemCreator.of(CompMaterial.EMERALD_BLOCK,
@@ -144,11 +197,25 @@ public class BazaarMainMenu extends Menu {
 			};
 
 			this.backButton = new Button() {
+
+				/**
+				 * Metoda wywolywana podczas klikniecia na przycisk powrotu
+				 *
+				 * @param player    - gracz
+				 * @param menu      - menu
+				 * @param clickType - rodzaj klikniecia mysza
+				 */
 				@Override
 				public void onClickedInMenu(final Player player, final Menu menu, final ClickType clickType) {
 					new BazaarMainMenu(bazaarPlayer).displayTo(player);
 				}
 
+
+				/**
+				 * Metoda zwracajaca dany item do wyswietlenia
+				 *
+				 * @return - item
+				 */
 				@Override
 				public ItemStack getItem() {
 					return ItemCreator.of(CompMaterial.REDSTONE_BLOCK,
@@ -157,6 +224,12 @@ public class BazaarMainMenu extends Menu {
 			};
 		}
 
+		/**
+		 * Metoda zwracajaca mozliwe opcje - potwierdzenie kupna lub powrot
+		 *
+		 * @param slot - slot
+		 * @return item do wyswietlenia
+		 */
 		@Override
 		public ItemStack getItemAt(final int slot) {
 			if (slot == getCenterSlot()) {
@@ -175,30 +248,55 @@ public class BazaarMainMenu extends Menu {
 		}
 	}
 
-
+	/**
+	 * Menu sprzedazy itemu graczowi
+	 */
 	private final class SellMenu extends Menu {
 
+		/**
+		 * Przycisk sprzedazy
+		 */
 		private final Button sellButton;
+
+		/**
+		 * Przycisk powrotu
+		 */
 		private final Button backButton;
 
+		/**
+		 * Dany item
+		 */
 		private final ItemStack itemStack;
 
+		/**
+		 * Konstruktor w ktorym ustawiamy wiekszosc rzeczy
+		 * @param bazaarPlayer - gracz, ktory ma bazar
+		 * @param itemStack - dany item
+		 * @param buyAmount - cena
+		 */
 		private SellMenu(final Player bazaarPlayer, final ItemStack itemStack, final int buyAmount) {
 
 			this.itemStack = itemStack;
 			setTitle("&2Sprzedajesz za: &6" + buyAmount + " zlota.");
 
 			this.sellButton = new Button() {
+
+				/**
+				 * Metoda wywolywana podczas klikniecia na przycisk sprzedazy
+				 * @param player - gracz
+				 * @param menu - menu
+				 * @param clickType - rodzaj klikniecia
+				 */
 				@Override
 				public void onClickedInMenu(final Player player, final Menu menu, final ClickType clickType) {
 					final Inventory playerInventory = player.getInventory();
 
 					//Sprawdzanie, czy gracz i bazaarplayer maja odpowiednie itemy
-					if (bazaarPlayer.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), buyAmount) || BazaarUtil.calculateGoldWithGoldBlocks(bazaarPlayer) > buyAmount) {
+					if (bazaarPlayer.getInventory().containsAtLeast(CompMaterial.GOLD_INGOT.toItem(), buyAmount) || BazaarUtil.calculateGoldWithGoldBlocks(bazaarPlayer) >= buyAmount) {
 						if (playerInventory.containsAtLeast(itemStack, itemStack.getAmount())) {
 							BazaarUtil.changeGoldToGoldBlocks(player, buyAmount);
 							playerInventory.removeItem(itemStack);
-							//playerInventory.addItem(new ItemStack(Material.GOLD_INGOT, buyAmount));
+
 							Common.tell(bazaarPlayer, "&aUdalo Ci sie kupic " + BazaarUtil.getItemAndAmountFormated(itemStack, buyAmount));
 						} else {
 							animateTitle("&cNie masz juz wiecej itemow!");
@@ -206,7 +304,6 @@ public class BazaarMainMenu extends Menu {
 							return;
 						}
 
-						//PlayerUtil.take(bazaarPlayer, CompMaterial.GOLD_INGOT, buyAmount);
 						BazaarUtil.changeGoldToGoldBlocks(bazaarPlayer, -buyAmount);
 						bazaarPlayer.getInventory().addItem(itemStack);
 						animateTitle("&2Transakcja udana!");
@@ -222,6 +319,11 @@ public class BazaarMainMenu extends Menu {
 					}
 				}
 
+				/**
+				 * Metoda zwracajaca dany item do wyswietlenia
+				 *
+				 * @return - item
+				 */
 				@Override
 				public ItemStack getItem() {
 					return ItemCreator.of(CompMaterial.EMERALD_BLOCK,
@@ -230,11 +332,24 @@ public class BazaarMainMenu extends Menu {
 			};
 
 			this.backButton = new Button() {
+
+				/**
+				 * Metoda wywolywana podczas klikniecia na przycisk powrotu
+				 *
+				 * @param player    - gracz
+				 * @param menu      - menu
+				 * @param clickType - rodzaj klikniecia
+				 */
 				@Override
 				public void onClickedInMenu(final Player player, final Menu menu, final ClickType clickType) {
 					new BazaarMainMenu(bazaarPlayer).displayTo(player);
 				}
 
+				/**
+				 * Metoda zwracajaca dany item do wyswietlenia
+				 *
+				 * @return - item
+				 */
 				@Override
 				public ItemStack getItem() {
 					return ItemCreator.of(CompMaterial.REDSTONE_BLOCK,
@@ -243,6 +358,12 @@ public class BazaarMainMenu extends Menu {
 			};
 		}
 
+		/**
+		 * Metoda zwracajaca mozliwe opcje - potwierdzenie sprzedazy lub powrot
+		 *
+		 * @param slot - slot
+		 * @return item do wyswietlenia
+		 */
 		@Override
 		public ItemStack getItemAt(final int slot) {
 			if (slot == getCenterSlot()) {
@@ -261,10 +382,12 @@ public class BazaarMainMenu extends Menu {
 		}
 	}
 
+	/**
+	 * Metoda wywolywana po udanej transakcji
+	 * @param seller - sprzedajacy
+	 * @param buyer - kupujacy
+	 */
 	public void onTransactionSuccess(final Player seller, final Player buyer) {
-//		final Inventory sellerInv = seller.getInventory();
-		System.out.println("Z sukcesywnej transakcji");
-		//BazaarUtil.changeGoldToGoldBlocks(seller, 0);
-		//BazaarUtil.changeGoldToGoldBlocks(buyer, 0);
+
 	}
 }

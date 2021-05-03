@@ -1,6 +1,8 @@
 package me.mikolaj.trading.command;
 
 import me.mikolaj.trading.PlayerCache;
+import me.mikolaj.trading.settings.Settings;
+import me.mikolaj.trading.utils.TradingUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,58 +18,76 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-//foundation way
+/**
+ * Komendy zwiazane z wymiana
+ */
 public class TradeCommand extends SimpleCommand {
 
+	/**
+	 * Konstuktor, tworzenie nazwy komendy, opisu i uzycia
+	 */
 	public TradeCommand() {
 		super("wymiana|wymien|trade");
 		setDescription("Proponuje wymiane innemu graczowi");
 		setUsage("<nick_gracza>");
 	}
 
+	/**
+	 * Metoda wywolywana po wpisaniu komendy
+	 */
 	@Override
 	protected void onCommand() {
 		checkConsole();
 		final Player first_player = getPlayer();
+
+		//brak argumentow
 		if (args.length == 0) {
-			//uzycie:
-			//PlayerCache.getCache(first_player).restorePlayerSnapshot(first_player);
-			//first_player.sendMessage(ChatColor.DARK_BLUE + "Poprawne uzycie: " + getLabel() + " <nick_gracza>");
 			Messenger.info(first_player, "&aPoprawne uzycie: " + getLabel() + " <nick_gracza>");
 			return;
 		}
 
+		//jeden argument, powinien byc to nick gracza z ktorym chcemy sie wymienic
 		if (args.length == 1) {
-			//hgw xd
 			final Player second_player = Bukkit.getPlayer(args[0]);
+
 			if (second_player == null) {
 				Messenger.error(first_player, "Nie ma takiego gracza!");
 				return;
 			}
+
 			if (first_player.equals(second_player)) {
 				Messenger.error(first_player, "Nie mozesz wyslac sobie oferty handlu!");
 				return;
 			}
 
+			if (!Settings.Trade.TRADING_EVERYWHERE) {
+				if (!TradingUtil.isInBazaarRegion(first_player)) {
+					Messenger.error(first_player, "Musisz znajdowac sie w odpowiednim miejscu!");
+
+				} else if (!TradingUtil.isInBazaarRegion(second_player)) {
+					Messenger.error(second_player, "Gracz z ktorym chcesz handlowac musi znajdowac sie w odpowiednim miejscu!");
+				}
+			}
+
 			final PlayerCache first_cache = PlayerCache.getCache(first_player);
 			final PlayerCache second_cache = PlayerCache.getCache(second_player);
 
+			//to znaczy, ze juz gracz mu wyslal oferte handlu, otwieramy menu wymiany
 			if (first_cache.getTradeOffersMap().get(second_player.getUniqueId()) != null) {
 
 				//tworzymy kopie ich eq
 				first_cache.createInventorySnapshot(first_player);
 				second_cache.createInventorySnapshot(second_player);
 
-
 				final Inventory inv = createTradingMenu(first_player, second_player);
+
 
 				first_player.openInventory(inv);
 				second_player.openInventory(inv);
 
 				first_cache.getTradeOffersMap().remove(second_player.getUniqueId());
 
-				//to znaczy, ze juz gracz mu wyslal oferte handlu
-				//open menu
+
 			} else {
 				second_cache.addOfferToTradeMap(first_player.getUniqueId());
 				Messenger.info(first_player, "Zaproponowales oferte handlu graczowi " + second_player.getName());
@@ -77,6 +97,13 @@ public class TradeCommand extends SimpleCommand {
 		}
 	}
 
+	/**
+	 * Stworzenie menu, do ktorego gracze moga wkladac itemy i po kliknieciu odpowiednich przyciskow wymienic sie
+	 *
+	 * @param player1 - gracz pierwszy
+	 * @param player2 - gracz drugi
+	 * @return - stworzone menu
+	 */
 	private Inventory createTradingMenu(final Player player1, final Player player2) {
 		//ten gracz ktory wyslal propozycje wymiany bedzie na poczatku
 		final Inventory inv = Bukkit.createInventory(null, 6 * 9, "Wymiana " + player2.getName() + " z " + player1.getName());
@@ -99,13 +126,17 @@ public class TradeCommand extends SimpleCommand {
 		inv.setItem(48, firstAccept);
 
 		return inv;
-
 	}
 
+	/**
+	 * Metoda sluzaca za proponowanie argumentow po wpisaniu komendy
+	 *
+	 * @return - lista slow, ktore maja zostac podpowiedziane
+	 */
 	@Override
 	protected List<String> tabComplete() {
 
-		if (args.length == 1) {//IMP zmienic to na nazwe gracza a nie uuid.!
+		if (args.length == 1) {
 			final List<Player> playerList = new ArrayList<>();
 			for (final UUID uuid : PlayerCache.getCache(getPlayer()).getTradeOffersMap().keySet()) {
 				playerList.add(Remain.getPlayerByUUID(uuid));

@@ -15,7 +15,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -27,17 +26,22 @@ import org.mineacademy.fo.remain.Remain;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Klasa odpowiadajaca za interakacje gracza ze swiatem
+ */
 public class PlayerListener implements Listener {
 
-	//IMP dorobic, ze jak sie wchodzi to gracz moze normalnie chodzic, moze w cachu zapisywac tylko czy ma bazar i na tej podstawie po wejsciu usuwac efekty/??
 
+	/**
+	 * Metoda wywolywana podczas interakcji gracza z jakakolwiek jednostka
+	 *
+	 * @param event - wydarzenie tej interakcji
+	 */
 	@EventHandler
 	public void onInteract(final PlayerInteractAtEntityEvent event) {
 		if (Settings.Bazaar.ENABLED) {
-			if (event.getRightClicked().getType() == EntityType.ARMOR_STAND && BazaarUtil.isInBazaarRegion(event.getRightClicked().getLocation())) {
+			if (event.getRightClicked().getType() == EntityType.ARMOR_STAND && BazaarUtil.isInBazaarRegion(event.getRightClicked().getLocation()))
 				event.setCancelled(true);
-				System.out.println("anulowaon");
-			}
 		}
 
 		if (!(event.getRightClicked() instanceof Player))
@@ -46,7 +50,6 @@ public class PlayerListener implements Listener {
 		if (!Remain.isInteractEventPrimaryHand(event))
 			return;
 
-		//IMP dodac try / catch i wyswietlac blad jak bedzie wprowadzona zla lokalizacja.
 		if (Settings.Bazaar.ENABLED) {
 
 			final Player clickedPlayer = (Player) event.getRightClicked();
@@ -61,6 +64,14 @@ public class PlayerListener implements Listener {
 		}
 	}
 
+	/**
+	 * Metoda wywolywana podczas zamkniecia przez gracza ekwipunku
+	 * <p>
+	 * To tutaj w razie naglego zamkniecia menu z wymiana miedzy graczami
+	 * Zwracamy ich itemy ze stanu przed wymiana
+	 *
+	 * @param event - wydarzenie zamykania ekwipunku
+	 */
 	@EventHandler
 	public void onInventoryClose(final InventoryCloseEvent event) {
 		if (event.getView().getTitle().contains(event.getPlayer().getName()) && !event.getView().getTitle().equals("Crafting")) {
@@ -82,6 +93,13 @@ public class PlayerListener implements Listener {
 		}
 	}
 
+	/**
+	 * Metoda wywolywana podczas klikniecia na cokolwiek w ekwipunku
+	 * <p>
+	 * To tutaj tworzymy system dzialania wymiany miedzy graczami
+	 *
+	 * @param event - wydarzenie interakcji w ekwipunku
+	 */
 	@EventHandler
 	public void onInventoryClick(final InventoryClickEvent event) {
 		final String title = event.getView().getTitle();
@@ -96,12 +114,6 @@ public class PlayerListener implements Listener {
 			if (player1 == null || player2 == null)
 				return;
 			//gracz 1 moze uzywac tylko przycisku na slocie 48
-			System.out.println("Gracz 1: " + player1.getName());
-			System.out.println("Gracz 2: " + player2.getName());
-
-
-			System.out.println("Slot (raw)" + event.getRawSlot());
-			System.out.println("Slot (zwykly)" + event.getSlot());
 
 			for (int i = 0; i < 6; i++) {
 				if (event.getRawSlot() == i * 9 + 4 && event.getRawSlot() < 54)
@@ -117,37 +129,23 @@ public class PlayerListener implements Listener {
 
 			final Player clicker = (Player) event.getWhoClicked();
 
-			System.out.println(event.getCurrentItem() + " <----- CURR ITEM");
-
-			//trzeba zrobic anulowanie po kliknieciu na czerwone szklo, ale wczesniej musi wywolac sie metoda zamieniajaca je na zolte ;)
+			//trzeba zrobic anulowanie po kliknieciu na czerwone szklo, ale wczesniej musi wywolac sie metoda zamieniajaca je na zolte
 			if (paneAt5 != null && paneAt48 != null && (paneAt5.getType() == Material.RED_STAINED_GLASS_PANE || paneAt48.getType() == Material.RED_STAINED_GLASS_PANE)
 					&& event.getRawSlot() != 5 && event.getRawSlot() != 48) {
-
 
 				//cofamy sie do dwoch czerwonych
 				if (paneAt5.getType() == Material.YELLOW_STAINED_GLASS_PANE && event.getClickedInventory() != null && event.getCurrentItem() != null) {
 					if (event.getClickedInventory().getViewers().size() == 2) {
 						Common.runLater(() -> event.getClickedInventory().setItem(5, new ItemStack(Material.RED_STAINED_GLASS_PANE, 1)));
 
-						//event.getClickedInventory().setItem(5, new ItemStack(Material.RED_STAINED_GLASS_PANE, 1));
 					}
 
 				} else if (paneAt48.getType() == Material.YELLOW_STAINED_GLASS_PANE && event.getClickedInventory() != null && event.getCurrentItem() != null) {
 					if (event.getClickedInventory().getViewers().size() == 2) {
 						Common.runLater(() -> event.getClickedInventory().setItem(48, new ItemStack(Material.RED_STAINED_GLASS_PANE, 1)));
 
-						//event.getClickedInventory().setItem(48, new ItemStack(Material.RED_STAINED_GLASS_PANE, 1));
 					}
 				}
-				//tutaj wywolamy nowa metode. todo nic w niej nie ma waznego, pewnie mozna usunac.
-				handleItemManipulation(event);
-
-
-				if (clicker.equals(player1))
-					System.out.println("Walidacja dla " + player1.getName() + validInputForPlayer(true, event.getRawSlot()));
-				else
-					System.out.println("Walidacja dla " + player2.getName() + validInputForPlayer(false, event.getRawSlot()));
-
 
 				//to w drugim stadium, po wzietu itemu
 				if (currItem == null || event.getSlot() < 54) {
@@ -159,7 +157,6 @@ public class PlayerListener implements Listener {
 						if (!validInputForPlayer(false, event.getRawSlot()))
 							event.setCancelled(true);
 					} else {
-						System.out.println("hgw czemu zadnego gracza nie znaleziono");
 						return;
 					}
 				}
@@ -193,6 +190,7 @@ public class PlayerListener implements Listener {
 				event.setCancelled(true);
 
 			}
+
 			//drugi etap
 			else if (paneAt5 != null && paneAt5.equals(paneAt48) && paneAt5.getType() == Material.YELLOW_STAINED_GLASS_PANE
 					&& currItem != null && currItem.getType() == Material.YELLOW_STAINED_GLASS_PANE) {
@@ -209,7 +207,7 @@ public class PlayerListener implements Listener {
 					final ItemStack thirdAcceptItem = new ItemStack(Material.GREEN_STAINED_GLASS_PANE, 1);
 
 					final ItemMeta thirdAcceptMeta = thirdAcceptItem.getItemMeta();
-					thirdAcceptMeta.setDisplayName(ChatColor.GREEN + "DONE!");
+					thirdAcceptMeta.setDisplayName(ChatColor.GREEN + "Wszystko zrobione!");
 					thirdAcceptItem.setItemMeta(thirdAcceptMeta);
 
 
@@ -249,44 +247,26 @@ public class PlayerListener implements Listener {
 						PlayerCache.getCache(player2).setIsInTradeEnd(false);
 					});
 
-				} else {
-					System.out.println("blad, eq gracza jest nullem kiedy nie powinno byc (sam koniec wymiany)");
-					for (final HumanEntity p : event.getViewers())
-						Common.tell(p, "BLAD ://");
-
 				}
-
-				if (event.getClickedInventory() != null)
-					for (final ItemStack item : event.getClickedInventory().getStorageContents())
-						System.out.println("Item ( z petli ): " + item);
 
 			} else { //anulujemy tak czy inaczej
 				event.setCancelled(true);
 			}
 
-			//szklo - nie zabieramy go ofc!
+			//szklo - nie zabieramy go oczywiscie
 			if (event.getRawSlot() == 5 || event.getRawSlot() == 48)
 				event.setCancelled(true);
 		}
-
-		//System.out.println(event.getInventory().getViewers() + "<-- zwykle inv");
-		if (event.getClickedInventory() != null) ;
-		//System.out.println(event.getClickedInventory().getViewers() + "<-- klikniete");
 	}
 
-	private void handleItemManipulation(final InventoryClickEvent event) {
 
-		//sprawdzamy czy na pewno w dobrym ekwipunku jestesmy
-		if (event.getClickedInventory() == null)
-			return;
-
-		final ItemStack currItem = event.getCurrentItem();
-		if (currItem == null && event.getRawSlot() < 54 && event.getClickedInventory().getViewers().size() == 2)
-			System.out.println("Item zostal wlozony, ale hgw czy byl tam wczesniej czy nie");
-		else if (currItem == null && event.getRawSlot() >= 54 && event.getClickedInventory().getViewers().size() == 1)
-			System.out.println("Item jest w zwyklym eq, ale hgw czy byl juz tam wczesniej czy nie");
-	}
-
+	/**
+	 * Metoda sprawdzajaca, czy gracz wlozyl item w odpowiednie miejsce
+	 *
+	 * @param player1 - czy gracz jest pierwszym (rozdzielenie graczy na 1 i 2 w celu latwego sprawdzania czy wszystko jest ok)
+	 * @param rawSlot - slot na ktory mial zostac wlozony item
+	 * @return - true, jezeli wszystko poszlo ok, false w przeciwnym przypadku
+	 */
 	private boolean validInputForPlayer(final boolean player1, final int rawSlot) {
 		if (rawSlot < 0 || rawSlot >= 54)
 			return true;
@@ -300,13 +280,20 @@ public class PlayerListener implements Listener {
 		}
 	}
 
+	/**
+	 * Metoda wywolywana podczas sukcesywnej wymiany - kiedy itemy maja zostac zamienione miedzy graczami
+	 *
+	 * @param player1   - gracz pierwszy
+	 * @param player2   - gracz drugi
+	 * @param inventory - ekwipunek w ktorym byla wymiana, tzw menu
+	 */
 	private void giveTradeItems(final Player player1, final Player player2, final Inventory inventory) {
 		final List<ItemStack> itemsForPlayer1 = new ArrayList<>();
 		final List<ItemStack> itemsForPlayer2 = new ArrayList<>();
 
 		int counter = 0;
 		for (final ItemStack item : inventory.getStorageContents()) {
-			System.out.println("Item " + item + " na slocie nr: " + counter);
+
 			if (item != null && counter % 9 != 4 && counter != 5 && counter != 48) {
 				if (counter % 9 < 4)
 					itemsForPlayer2.add(item);
@@ -321,10 +308,4 @@ public class PlayerListener implements Listener {
 			player2.getInventory().addItem(item);
 
 	}
-
-	@EventHandler
-	public void onItemTake(final InventoryMoveItemEvent event) {
-		System.out.println("Z move event");
-	}
-
 }

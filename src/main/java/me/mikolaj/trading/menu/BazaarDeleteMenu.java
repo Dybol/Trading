@@ -12,18 +12,32 @@ import org.mineacademy.fo.menu.button.ButtonMenu;
 import org.mineacademy.fo.menu.model.ItemCreator;
 import org.mineacademy.fo.remain.CompMaterial;
 
+/**
+ * Menu odpowiadajace za usuwanie itemow z bazaru
+ */
 public class BazaarDeleteMenu extends Menu {
 
+	/**
+	 * Gracz, ktory ma bazar
+	 */
 	private final Player bazaarPlayer;
 
+	/**
+	 * Wystawione itemy
+	 */
 	private final Button[] itemButton = new Button[36];
 
+	/**
+	 * Konstuktor, w ktorym ustawiamy wiekszosc rzeczy
+	 *
+	 * @param bazaarPlayer - gracz, ktory ma bazar
+	 */
 	public BazaarDeleteMenu(final Player bazaarPlayer) {
 
 		this.bazaarPlayer = bazaarPlayer;
 
 		final PlayerCache cache = PlayerCache.getCache(bazaarPlayer);
-		setTitle("&1Wybierz item ktory chcesz usunac ");
+		setTitle("&1Wybierz item do usuniecia");
 
 		for (int i = 0; i < cache.getCounter(); i++) {
 			ItemStack item = cache.getContent()[i];
@@ -39,6 +53,12 @@ public class BazaarDeleteMenu extends Menu {
 
 	}
 
+	/**
+	 * Wyswietlanie itemow, ktore gracz aktualnie wystawil
+	 *
+	 * @param slot - slot
+	 * @return - item
+	 */
 	@Override
 	public ItemStack getItemAt(final int slot) {
 		final PlayerCache cache = PlayerCache.getCache(bazaarPlayer);
@@ -50,13 +70,31 @@ public class BazaarDeleteMenu extends Menu {
 		return null;
 	}
 
+	/**
+	 * Menu potwierdzajace usuniecie itemu
+	 */
 	private static final class ConfirmRemoveItemMenu extends Menu {
 
+		/**
+		 * Item do usuniecia
+		 */
 		private final ItemStack item;
+
+		/**
+		 * Przycisk potwierdzajacy usuniecie danego itemu
+		 */
 		private final Button removeButton;
+
+		/**
+		 * Przycisk powrotu
+		 */
 		private final Button backButton;
 
-
+		/**
+		 * Konstruktor, w ktorym ustawiamy wiekszosc rzeczy
+		 * @param bazaarPlayer - gracz, ktory ma bazar
+		 * @param item - item, ktory chcemy usunac
+		 */
 		private ConfirmRemoveItemMenu(final Player bazaarPlayer, final ItemStack item) {
 
 			setTitle("&bPotwierdz usuniecie itemu z bazaru");
@@ -64,19 +102,30 @@ public class BazaarDeleteMenu extends Menu {
 			this.item = item;
 
 			this.removeButton = new Button() {
+
+				/**
+				 * Metoda wywolywana podczas klikniecia na przycisk potwierdzenia usuwania
+				 * @param player - gracz
+				 * @param menu - menu
+				 * @param clickType - rodzaj klikniecia
+				 */
 				@Override
 				public void onClickedInMenu(final Player player, final Menu menu, final ClickType clickType) {
 					final PlayerCache bazaarCache = PlayerCache.getCache(bazaarPlayer);
 
 					if (bazaarCache.deleteItem(item)) {
 						animateTitle("&2Usunieto!");
-						//menu.restartMenu();
 						Common.runLater(20, () -> new BazaarDeleteMenu(bazaarPlayer).displayTo(player));
-					} else { //nw czy mozliwe to
+					} else {
+						//sytuacja raczej niemozliwa
 						animateTitle("&cBlad!");
 					}
 				}
 
+				/**
+				 * Metoda zwracajaca dany item do wyswietlenia
+				 * @return item
+				 */
 				@Override
 				public ItemStack getItem() {
 					return ItemCreator.of(CompMaterial.EMERALD_BLOCK,
@@ -85,11 +134,24 @@ public class BazaarDeleteMenu extends Menu {
 			};
 
 			this.backButton = new Button() {
+
+				/**
+				 * Metoda wywolywana podczas klikniecia na przycisk powrotu
+				 *
+				 * @param player    - gracz
+				 * @param menu      - menu
+				 * @param clickType - rodzaj klikniecia
+				 */
 				@Override
 				public void onClickedInMenu(final Player player, final Menu menu, final ClickType clickType) {
 					new BazaarDeleteMenu(bazaarPlayer).displayTo(player);
 				}
 
+				/**
+				 * Metoda zwracajaca dany item do wyswietlenia
+				 *
+				 * @return - item
+				 */
 				@Override
 				public ItemStack getItem() {
 					return ItemCreator.of(CompMaterial.REDSTONE_BLOCK,
@@ -98,6 +160,14 @@ public class BazaarDeleteMenu extends Menu {
 			};
 		}
 
+		/**
+		 * Metoda wyswietlajaca mozliwe akcje - potwierdzenie
+		 * usuniecia itemu, lub powrot, oraz przedmiot ktory
+		 * aktualnie chcemy usunac
+		 *
+		 * @param slot - slot
+		 * @return item
+		 */
 		@Override
 		public ItemStack getItemAt(final int slot) {
 			if (slot == getCenterSlot()) {
